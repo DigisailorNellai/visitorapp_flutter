@@ -1,7 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:visitor_app_flutter/firebase_options.dart';
 import 'package:visitor_app_flutter/signup.dart';
+import 'package:visitor_app_flutter/visitor_page.dart';
 
 void main() async {
   
@@ -18,12 +20,13 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Firebase Auth',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home:SignUpScreen() ,
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+     initialRoute: '/Signup',
+     getPages: [
+      GetPage(name: '/Signup', page: ()=> SignUpScreen()),
+      GetPage(name: '/Visitorpage', page: ()=> Visitorpage()),
+     ],
      );  
   }
 }
