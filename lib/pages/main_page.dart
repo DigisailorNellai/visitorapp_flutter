@@ -49,6 +49,7 @@ class Mainpage extends StatelessWidget {
             ],
           ),
         ),
+        bottomNavigationBar: NavigationBarBottom(),
     );
   }
 }

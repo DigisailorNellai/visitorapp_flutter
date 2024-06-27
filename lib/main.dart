@@ -2,8 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:visitor_app_flutter/firebase_options.dart';
-import 'package:visitor_app_flutter/signup.dart';
-import 'package:visitor_app_flutter/visitor_page.dart';
+import 'package:visitor_app_flutter/pages/signin.dart';
+import 'package:visitor_app_flutter/pages/visitor_page.dart';
 
 void main() async {
   
@@ -22,9 +22,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-     initialRoute: '/Signup',
+     initialRoute: '/Signin',
      getPages: [
-      GetPage(name: '/Signup', page: ()=> SignUpScreen()),
+      GetPage(name: '/Signin', page: ()=> SignInScreen()),
       GetPage(name: '/Visitorpage', page: ()=> Visitorpage()),
      ],
      );  

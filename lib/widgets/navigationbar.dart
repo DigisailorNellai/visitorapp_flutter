@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:visitor_app_flutter/main_page.dart';
-import 'package:visitor_app_flutter/signup.dart';
-import 'package:visitor_app_flutter/visitor_page.dart'; // Import Get package
+import 'package:visitor_app_flutter/pages/appointment.dart';
+import 'package:visitor_app_flutter/pages/calender.dart';
+import 'package:visitor_app_flutter/pages/main_page.dart';
+import 'package:visitor_app_flutter/pages/user.dart';
 
 class NavigationBarBottom extends StatefulWidget {
   const NavigationBarBottom({super.key});
@@ -12,49 +12,87 @@ class NavigationBarBottom extends StatefulWidget {
 }
 
 class _NavigationBarBottomState extends State<NavigationBarBottom> {
-  late int _selectedIndex = 0; // Renamed from MyIndex to _selectedIndex
+  late int MyIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _getPage(_selectedIndex), // New method to return selected page
-      bottomNavigationBar: SizedBox(
-        height: 70, // Adjust height as needed
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.purple,
-          onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          currentIndex: _selectedIndex,
-          selectedItemColor: Colors.white,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-            BottomNavigationBarItem(icon: Icon(Icons.favorite), label: ''),
-            BottomNavigationBarItem(icon: Icon(Icons.store), label: ''),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: '')
-          ],
-          showUnselectedLabels: false,
-          showSelectedLabels: false,
+    return Card(
+      child: ClipRRect(
+        child: Container(
+          child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: const Color.fromARGB(255, 15, 66, 107),
+            onTap: (index) {
+              setState(() {
+                MyIndex = index;
+              });
+              switch (index) {
+                case 0:
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Mainpage(),
+                    ),
+                  );
+                  break;
+                case 1:
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => calender(),
+                    ),
+                  );
+                  break;
+                case 2:
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BookAppointmentScreen(),
+                    ),
+                  );
+                  break;
+                case 3:
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => users(),
+                    ),
+                  );
+                  break;
+              }
+            },
+            currentIndex: MyIndex,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(
+                  Icons.home,
+                ),
+                label: '',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  Icons.calendar_month,
+                ),
+                label: '',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  Icons.local_activity,
+                ),
+                label: '',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  Icons.settings,
+                ),
+                label: '',
+              ),
+            ],
+            showUnselectedLabels: false,
+            showSelectedLabels: false,
+          ),
         ),
       ),
     );
-  }
-
-  Widget _getPage(int index) {
-    switch (index) {
-      case 0:
-        return SignUpScreen();
-      case 1:
-        return Visitorpage();
-      case 2:
-        return Mainpage();
-      case 3:
-        return SignUpScreen();
-      default:
-        return Container(); // Handle default case
-    }
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:get/get.dart';
-import 'package:visitor_app_flutter/verification_page.dart';
+import 'package:visitor_app_flutter/pages/verification_page.dart';
 
 class Visitorpage extends StatelessWidget {
   const Visitorpage({super.key});
