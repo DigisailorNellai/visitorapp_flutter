@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:visitor_app_flutter/pages/main_page.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class Verification extends StatefulWidget {
   final String name;
@@ -14,7 +15,7 @@ class Verification extends StatefulWidget {
   final String profession;
 
   Verification({
-    super.key,
+    Key? key,
     required this.name,
     required this.email,
     required this.phone,
@@ -28,13 +29,14 @@ class Verification extends StatefulWidget {
 class _VerificationState extends State<Verification> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _aadhaarController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController(); // Add this controller
+  final TextEditingController _passwordController = TextEditingController();
 
   File? _imageFile;
   File? _image;
 
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -60,67 +62,86 @@ class _VerificationState extends State<Verification> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
     );
 
-    if (picked != null && picked != DateTime.now()) {
+    if (picked != null) {
       setState(() {
         _dateController.text = "${picked.toLocal()}".split(' ')[0];
       });
     }
   }
 
-  Future<void> _verifyAndSave() async {
-    try {
-      // Check if the email already exists
-      final QuerySnapshot result = await FirebaseFirestore.instance
-          .collection('visitors')
-          .where('email', isEqualTo: widget.email)
-          .get();
-      final List<DocumentSnapshot> documents = result.docs;
+ Future<void> _verifyAndSave() async {
+  try {
+    final QuerySnapshot result = await FirebaseFirestore.instance
+        .collection('kyc')
+        .where('email', isEqualTo: widget.email)
+        .get();
+    final List<DocumentSnapshot> documents = result.docs;
 
-      if (documents.isEmpty) {
-        // Email does not exist, proceed with saving
-        String hashedPassword = _hashPassword(_passwordController.text); // Hash the password
-
-        await FirebaseFirestore.instance.collection('visitors').add({
-          'name': widget.name,
-          'email': widget.email,
-          'phone': widget.phone,
-          'profession': widget.profession,
-          'aadhaar': _aadhaarController.text,
-          'aadhaar_photo': _imageFile?.path,
-          'selfie': _image?.path,
-          'dob': _dateController.text,
-          'password': hashedPassword, // Store hashed password in Firestore
-        });
-
-        // Navigate to the main page after successful verification
-        Get.to(() => Mainpage());
-      } else {
-        // Email already exists, show an error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Email already exists. Please use a different email."),
-          ),
-        );
-      }
-    } catch (e) {
-      print(e);
+    if (documents.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Failed to verify and save. Please try again."),
+          content: Text("Email already exists. Please use a different email."),
         ),
       );
+      return; // Stop execution if email exists
+    }
+
+    // Proceed with saving
+    String hashedPassword = _hashPassword(_passwordController.text);
+
+    // Upload images to Firebase Storage
+    String? aadhaarImageUrl = await _uploadImageToStorage(_imageFile, 'aadhaar');
+    String? selfieUrl = await _uploadImageToStorage(_image, 'selfie');
+
+    // Save data to Firestore
+    await FirebaseFirestore.instance.collection('kyc').add({
+      
+      'aadhaar': _aadhaarController.text,
+      'aadhaar_image_url': aadhaarImageUrl,
+      'selfie_url': selfieUrl,
+      'dob': _dateController.text,
+      'password': hashedPassword,
+    });
+
+    // Navigate to the main page after successful verification
+    Get.to(() => Mainpage());
+
+  } catch (e) {
+    print('Error verifying and saving: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Failed to verify and save. Please try again."),
+      ),
+    );
+  }
+}
+
+
+  Future<String?> _uploadImageToStorage(File? image, String folderName) async {
+    if (image == null) return null;
+
+    try {
+      Reference ref = FirebaseStorage.instance
+          .ref()
+          .child('$folderName/${DateTime.now().millisecondsSinceEpoch}');
+      UploadTask uploadTask = ref.putFile(image);
+      TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+      String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print('Error uploading $folderName image: $e');
+      return null;
     }
   }
 
   String _hashPassword(String password) {
-    // Replace with your preferred hashing algorithm (e.g., bcrypt)
-    var bytes = utf8.encode(password); // encode the password to bytes
-    var digest = sha256.convert(bytes); // hash the bytes
-    return digest.toString(); // return the hashed password as string
+    var bytes = utf8.encode(password);
+    var digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   @override
@@ -130,6 +151,7 @@ class _VerificationState extends State<Verification> {
         child: Padding(
           padding: EdgeInsets.all(20),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 20),
               Align(
@@ -177,11 +199,13 @@ class _VerificationState extends State<Verification> {
                           ? Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.camera_alt, size: 50, color: Colors.grey),
+                                Icon(Icons.camera_alt,
+                                    size: 50, color: Colors.grey),
                                 SizedBox(height: 10),
                                 Text(
                                   'Capture Aadhaar card',
-                                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                                  style: TextStyle(
+                                      fontSize: 18, color: Colors.grey),
                                 ),
                               ],
                             )
@@ -277,7 +301,7 @@ class _VerificationState extends State<Verification> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
+              ), 
               SizedBox(height: 5),
               TextFormField(
                 controller: _passwordController,
@@ -299,7 +323,8 @@ class _VerificationState extends State<Verification> {
               ElevatedButton(
                 onPressed: _verifyAndSave,
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(Color.fromARGB(255, 24, 61, 91)),
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                      Color.fromARGB(255, 24, 61, 91)),
                   shape: MaterialStateProperty.all<OutlinedBorder>(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5.0),

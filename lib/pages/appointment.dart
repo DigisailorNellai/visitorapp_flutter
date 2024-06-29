@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:visitor_app_flutter/pages/QR.dart';
 import 'package:visitor_app_flutter/widgets/navigationbar.dart';
+import 'package:visitor_app_flutter/pages/user.dart';
 
 class BookAppointmentScreen extends StatefulWidget {
   @override
@@ -106,12 +107,40 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         'staffDepartment': _selectedStaffDepartment,
         'status': 'pending',
       });
-      String qrData =
-          'Visitor ID: ${FirebaseAuth.instance.currentUser?.uid}, Date: $_selectedDate, Time: ${_selectedTime!.format(context)}, Staff ID: $_selectedStaff';
+
+      // Navigate to AppointmentDetailsScreen after booking
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => QrCodeScreen(qrData: qrData),
+          builder: (context) => AppointmentDetailsScreen(
+            visitorName:
+                FirebaseAuth.instance.currentUser?.displayName ?? 'Visitor',
+            appointmentDate: _selectedDate!,
+            appointmentTime: _selectedTime!,
+            onAccept: (bool accepted) {
+              // Update appointment status in Firestore
+              // Navigate to QR code screen if accepted
+              if (accepted) {
+                // Navigate to QR Code screen
+                String qrData =
+                    'Visitor ID: ${FirebaseAuth.instance.currentUser?.uid}, Date: $_selectedDate, Time: ${_selectedTime!.format(context)}, Staff ID: $_selectedStaff';
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => QrCodeScreen(qrData: qrData),
+                  ),
+                );
+              } else {
+                // Handle decline logic
+                // Update appointment status to 'declined' in Firestore
+                // Show decline message
+              }
+            },
+            onDecline: (bool declined) {
+              // Update appointment status to 'declined' in Firestore
+              // Show decline message
+            },
+          ),
         ),
       );
     }
