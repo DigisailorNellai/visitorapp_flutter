@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:visitor_app_flutter/pages/main_page.dart';
+import 'package:visitor_app_flutter/pages/staff_home_page.dart';
 import 'package:visitor_app_flutter/pages/visitor_page.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -25,10 +26,9 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   String _hashPassword(String password) {
-    // Replace with your preferred hashing algorithm (e.g., bcrypt)
-    var bytes = utf8.encode(password); // encode the password to bytes
-    var digest = sha256.convert(bytes); // hash the bytes
-    return digest.toString(); // return the hashed password as string
+    var bytes = utf8.encode(password);
+    var digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   Future<void> _signIn() async {
@@ -44,31 +44,48 @@ class _SignInScreenState extends State<SignInScreen> {
       });
 
       try {
-        // Query Firestore for user with matching email
-        var querySnapshot = await FirebaseFirestore.instance
+        // Query Firestore for user with matching email in visitors collection
+        var visitorQuerySnapshot = await FirebaseFirestore.instance
             .collection('visitors')
             .where('email', isEqualTo: _email)
             .limit(1)
             .get();
 
-        // Check if user exists in Firestore visitors collection
-        if (querySnapshot.size > 0) {
-          var userDoc = querySnapshot.docs.first;
-          var storedHashedPassword = userDoc['password']; // Replace 'hashedPassword' with your actual field name
+        if (visitorQuerySnapshot.size > 0) {
+          var userDoc = visitorQuerySnapshot.docs.first;
+          var storedHashedPassword = userDoc['password'];
           var enteredHashedPassword = _hashPassword(_password);
 
-          // Compare hashed passwords
           if (storedHashedPassword == enteredHashedPassword) {
-            // Passwords match, navigate to the main page
             Get.to(() => Mainpage());
+            return;
           } else {
-            // Passwords don't match
             throw FirebaseAuthException(code: 'wrong-password');
           }
-        } else {
-          // User not found in Firestore visitors collection
-          throw FirebaseAuthException(code: 'user-not-found');
         }
+
+        // Query Firestore for user with matching email in staff collection
+        var staffQuerySnapshot = await FirebaseFirestore.instance
+            .collection('staff')
+            .where('email', isEqualTo: _email)
+            .limit(1)
+            .get();
+
+        if (staffQuerySnapshot.size > 0) {
+          var userDoc = staffQuerySnapshot.docs.first;
+          var storedHashedPassword = userDoc['password'];
+          var enteredHashedPassword = _hashPassword(_password);
+
+          if (storedHashedPassword == enteredHashedPassword) {
+            Get.to(() => Staff_Home_Page()); // Navigate to StaffHomePage if email belongs to staff
+            return;
+          } else {
+            throw FirebaseAuthException(code: 'wrong-password');
+          }
+        }
+
+        // If user not found in either collection
+        throw FirebaseAuthException(code: 'user-not-found');
       } catch (e) {
         print(e);
         String message = "Failed to sign in. Please try again.";

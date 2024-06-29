@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:visitor_app_flutter/pages/QR.dart';
 import 'package:visitor_app_flutter/pages/appointment.dart';
 import 'package:visitor_app_flutter/pages/calender.dart';
 import 'package:visitor_app_flutter/pages/main_page.dart';
@@ -39,7 +40,7 @@ class _NavigationBarBottomState extends State<NavigationBarBottom> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => calender(),
+                      builder: (context) => QrCodeScreen(qrData: ''),
                     ),
                   );
                   break;
@@ -52,12 +53,13 @@ class _NavigationBarBottomState extends State<NavigationBarBottom> {
                   );
                   break;
                 case 3:
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => users(),
-                    ),
-                  );
+                  var docRef;
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => AppointmentDetailsScreen(visitorName: '', appointmentDate: , appointmentTime: appointmentTime, onAccept: onAccept, onDecline: onDecline)
+                  //   ),
+                  // );
                   break;
               }
             },

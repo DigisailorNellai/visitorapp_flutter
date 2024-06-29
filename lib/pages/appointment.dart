@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:visitor_app_flutter/pages/QR.dart';
+import 'package:visitor_app_flutter/pages/user.dart';
 
 class BookAppointmentScreen extends StatefulWidget {
   @override
@@ -91,28 +92,55 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   void _submitForm() async {
-    if (_formKey.currentState!.validate() &&
-        _selectedDate != null &&
-        _selectedTime != null &&
-        _selectedStaff != null) {
-      await FirebaseFirestore.instance.collection('appointments').add({
-        'visitorId': FirebaseAuth.instance.currentUser?.uid,
-        'date': _selectedDate,
-        'time': _selectedTime!.format(context),
-        'staffId': _selectedStaff,
-        'staffDepartment': _selectedStaffDepartment,
-        'status': 'pending',
-      });
-      String qrData =
-          'Visitor ID: ${FirebaseAuth.instance.currentUser?.uid}, Date: $_selectedDate, Time: ${_selectedTime!.format(context)}, Staff ID: $_selectedStaff';
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => QrCodeScreen(qrData: qrData),
+  if (_formKey.currentState!.validate() &&
+      _selectedDate != null &&
+      _selectedTime != null &&
+      _selectedStaff != null) {
+    await FirebaseFirestore.instance.collection('appointments').add({
+      'visitorId': FirebaseAuth.instance.currentUser?.uid,
+      'date': _selectedDate,
+      'time': _selectedTime!.format(context),
+      'staffId': _selectedStaff,
+      'staffDepartment': _selectedStaffDepartment,
+      'status': 'pending',
+    });
+
+    // Navigate to AppointmentDetailsScreen after booking
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AppointmentDetailsScreen(
+          visitorName: FirebaseAuth.instance.currentUser?.displayName ?? 'Visitor',
+          appointmentDate: _selectedDate!,
+          appointmentTime: _selectedTime!,
+          onAccept: (bool accepted) {
+            // Update appointment status in Firestore
+            // Navigate to QR code screen if accepted
+            if (accepted) {
+              // Navigate to QR Code screen
+              String qrData = 'Visitor ID: ${FirebaseAuth.instance.currentUser?.uid}, Date: $_selectedDate, Time: ${_selectedTime!.format(context)}, Staff ID: $_selectedStaff';
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => QrCodeScreen(qrData: qrData),
+                ),
+              );
+            } else {
+              // Handle decline logic
+              // Update appointment status to 'declined' in Firestore
+              // Show decline message
+            }
+          },
+          onDecline: (bool declined) {
+            // Update appointment status to 'declined' in Firestore
+            // Show decline message
+          },
         ),
-      );
-    }
+      ),
+    );
   }
+}
+
 
   String formatTimeOfDay(TimeOfDay time) {
     final hours = time.hourOfPeriod.toString().padLeft(2, '0');
