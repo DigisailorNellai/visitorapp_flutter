@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:visitor_app_flutter/pages/QR.dart';
+import 'package:visitor_app_flutter/widgets/navigationbar.dart';
 
 class BookAppointmentScreen extends StatefulWidget {
   @override
@@ -36,9 +37,11 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   void _fetchDepartmentList() async {
-    QuerySnapshot staffSnapshot = await FirebaseFirestore.instance.collection('staff').get();
+    QuerySnapshot staffSnapshot =
+        await FirebaseFirestore.instance.collection('staff').get();
     setState(() {
-      _staffDepartmentsList = staffSnapshot.docs.map((doc) => doc['department'] as String ).toList();
+      _staffDepartmentsList =
+          staffSnapshot.docs.map((doc) => doc['department'] as String).toList();
     });
   }
 
@@ -127,8 +130,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     final minutePart = int.parse(parts[1].split(' ')[0]);
     final period = parts[1].split(' ')[1];
     final isPM = period == 'PM';
-    final hour =
-        isPM ? (hourPart == 12 ? 12 : hourPart + 12) : (hourPart == 12 ? 0 : hourPart);
+    final hour = isPM
+        ? (hourPart == 12 ? 12 : hourPart + 12)
+        : (hourPart == 12 ? 0 : hourPart);
     return TimeOfDay(hour: hour, minute: minutePart);
   }
 
@@ -216,7 +220,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               SizedBox(height: 10),
               DropdownButton<String>(
                 hint: Text('Select Time'),
-                value: _selectedTime == null ? null : formatTimeOfDay(_selectedTime!),
+                value: _selectedTime == null
+                    ? null
+                    : formatTimeOfDay(_selectedTime!),
                 onChanged: _selectedDate != null
                     ? _selectTime
                     : null, // Disable time selection if date is not selected
@@ -229,8 +235,15 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
+                style: ButtonStyle(
+                    backgroundColor: WidgetStatePropertyAll(
+                  Color.fromARGB(255, 15, 66, 107),
+                )),
                 onPressed: _submitForm,
-                child: Text('Book Appointment'),
+                child: Text(
+                  'Book Appointment',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ],
           ),
@@ -239,5 +252,3 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     );
   }
 }
-
-

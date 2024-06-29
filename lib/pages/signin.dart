@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'package:get/get.dart';
+import 'package:visitor_app_flutter/pages/forget_password.dart';
 import 'package:visitor_app_flutter/pages/main_page.dart';
 import 'package:visitor_app_flutter/pages/visitor_page.dart';
 
@@ -54,7 +55,8 @@ class _SignInScreenState extends State<SignInScreen> {
         // Check if user exists in Firestore visitors collection
         if (querySnapshot.size > 0) {
           var userDoc = querySnapshot.docs.first;
-          var storedHashedPassword = userDoc['password']; // Replace 'hashedPassword' with your actual field name
+          var storedHashedPassword = userDoc[
+              'password']; // Replace 'hashedPassword' with your actual field name
           var enteredHashedPassword = _hashPassword(_password);
 
           // Compare hashed passwords
@@ -131,7 +133,9 @@ class _SignInScreenState extends State<SignInScreen> {
                     suffixIcon: IconButton(
                       onPressed: _togglePasswordVisibility,
                       icon: Icon(
-                        _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                        _isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                     ),
                     border: OutlineInputBorder(
@@ -153,7 +157,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     : ElevatedButton(
                         onPressed: _signIn,
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(Color.fromARGB(255, 19, 62, 97)),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              Color.fromARGB(255, 19, 62, 97)),
                           shape: MaterialStateProperty.all<OutlinedBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(5.0),
@@ -174,7 +179,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 SizedBox(height: 20),
                 TextButton(
                   onPressed: () {
-                    // Navigate to forgot password screen or reset password flow
+                    Get.to(() => ForgetPassword());
                   },
                   child: Text(
                     'Forgot Password?',
@@ -190,7 +195,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     Get.to(() => Visitorpage());
                   },
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Color.fromARGB(255, 24, 61, 91)),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        Color.fromARGB(255, 24, 61, 91)),
                     shape: MaterialStateProperty.all<OutlinedBorder>(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5.0),

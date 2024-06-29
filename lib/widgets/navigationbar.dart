@@ -22,6 +22,7 @@ class _NavigationBarBottomState extends State<NavigationBarBottom> {
           child: BottomNavigationBar(
             type: BottomNavigationBarType.fixed,
             backgroundColor: const Color.fromARGB(255, 15, 66, 107),
+            selectedItemColor: Colors.green,
             onTap: (index) {
               setState(() {
                 MyIndex = index;
@@ -66,24 +67,28 @@ class _NavigationBarBottomState extends State<NavigationBarBottom> {
               BottomNavigationBarItem(
                 icon: Icon(
                   Icons.home,
+                  color: Colors.white,
                 ),
                 label: '',
               ),
               BottomNavigationBarItem(
                 icon: Icon(
                   Icons.calendar_month,
+                  color: Colors.white,
                 ),
                 label: '',
               ),
               BottomNavigationBarItem(
                 icon: Icon(
                   Icons.local_activity,
+                  color: Colors.white,
                 ),
                 label: '',
               ),
               BottomNavigationBarItem(
                 icon: Icon(
                   Icons.settings,
+                  color: Colors.white,
                 ),
                 label: '',
               ),
