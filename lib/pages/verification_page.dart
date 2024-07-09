@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class Verification extends StatefulWidget {
+  final String uid;
   final String name;
   final String email;
   final String phone;
@@ -16,6 +17,7 @@ class Verification extends StatefulWidget {
 
   Verification({
     Key? key,
+    required this.uid,
     required this.name,
     required this.email,
     required this.phone,
@@ -73,53 +75,52 @@ class _VerificationState extends State<Verification> {
     }
   }
 
- Future<void> _verifyAndSave() async {
-  try {
-    final QuerySnapshot result = await FirebaseFirestore.instance
-        .collection('kyc')
-        .where('email', isEqualTo: widget.email)
-        .get();
-    final List<DocumentSnapshot> documents = result.docs;
+  Future<void> _verifyAndSave() async {
+    try {
+      final QuerySnapshot result = await FirebaseFirestore.instance
+          .collection('kyc')
+          .where('email', isEqualTo: widget.email)
+          .get();
+      final List<DocumentSnapshot> documents = result.docs;
 
-    if (documents.isNotEmpty) {
+      if (documents.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text("Email already exists. Please use a different email."),
+          ),
+        );
+        return; // Stop execution if email exists
+      }
+
+      // Proceed with saving
+      String hashedPassword = _hashPassword(_passwordController.text);
+
+      // Upload images to Firebase Storage
+      String? aadhaarImageUrl =
+          await _uploadImageToStorage(_imageFile, 'aadhaar');
+      String? selfieUrl = await _uploadImageToStorage(_image, 'selfie');
+
+      // Save data to Firestore
+      await FirebaseFirestore.instance.collection('kyc').add({
+        'aadhaar': _aadhaarController.text,
+        'aadhaar_image_url': aadhaarImageUrl,
+        'selfie_url': selfieUrl,
+        'dob': _dateController.text,
+        'password': hashedPassword,
+      });
+
+      // Navigate to the main page after successful verification
+      Get.to(() => Mainpage());
+    } catch (e) {
+      print('Error verifying and saving: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Email already exists. Please use a different email."),
+        const SnackBar(
+          content: Text("Failed to verify and save. Please try again."),
         ),
       );
-      return; // Stop execution if email exists
     }
-
-    // Proceed with saving
-    String hashedPassword = _hashPassword(_passwordController.text);
-
-    // Upload images to Firebase Storage
-    String? aadhaarImageUrl = await _uploadImageToStorage(_imageFile, 'aadhaar');
-    String? selfieUrl = await _uploadImageToStorage(_image, 'selfie');
-
-    // Save data to Firestore
-    await FirebaseFirestore.instance.collection('kyc').add({
-      
-      'aadhaar': _aadhaarController.text,
-      'aadhaar_image_url': aadhaarImageUrl,
-      'selfie_url': selfieUrl,
-      'dob': _dateController.text,
-      'password': hashedPassword,
-    });
-
-    // Navigate to the main page after successful verification
-    Get.to(() => Mainpage());
-
-  } catch (e) {
-    print('Error verifying and saving: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Failed to verify and save. Please try again."),
-      ),
-    );
   }
-}
-
 
   Future<String?> _uploadImageToStorage(File? image, String folderName) async {
     if (image == null) return null;
@@ -149,12 +150,12 @@ class _VerificationState extends State<Verification> {
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 20),
-              Align(
+              const SizedBox(height: 20),
+              const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Aadhaar Number',
@@ -164,7 +165,7 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              SizedBox(height: 5),
+              const SizedBox(height: 5),
               TextFormField(
                 controller: _aadhaarController,
                 decoration: InputDecoration(
@@ -174,8 +175,8 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              SizedBox(height: 20),
-              Align(
+              const SizedBox(height: 20),
+              const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Aadhaar card Photo',
@@ -185,7 +186,7 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Center(
                 child: GestureDetector(
                   onTap: _pickImage,
@@ -194,9 +195,9 @@ class _VerificationState extends State<Verification> {
                     child: Container(
                       width: 400,
                       height: 200,
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       child: _imageFile == null
-                          ? Column(
+                          ? const Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.camera_alt,
@@ -214,8 +215,8 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              SizedBox(height: 10),
-              Align(
+              const SizedBox(height: 10),
+              const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Selfie',
@@ -225,7 +226,7 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              SizedBox(height: 5),
+              const SizedBox(height: 5),
               Center(
                 child: GestureDetector(
                   onTap: _captureSelfie,
@@ -237,7 +238,7 @@ class _VerificationState extends State<Verification> {
                     child: Container(
                       width: 400,
                       height: 250,
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -259,8 +260,8 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              SizedBox(height: 10),
-              Align(
+              const SizedBox(height: 10),
+              const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Date of Birth',
@@ -270,7 +271,7 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              SizedBox(height: 5),
+              const SizedBox(height: 5),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextFormField(
@@ -278,7 +279,7 @@ class _VerificationState extends State<Verification> {
                   decoration: InputDecoration(
                     prefixIcon: GestureDetector(
                       onTap: () => _selectDate(context),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.calendar_today),
@@ -291,8 +292,8 @@ class _VerificationState extends State<Verification> {
                   readOnly: true,
                 ),
               ),
-              SizedBox(height: 10),
-              Align(
+              const SizedBox(height: 10),
+              const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Password',
@@ -301,8 +302,8 @@ class _VerificationState extends State<Verification> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ), 
-              SizedBox(height: 5),
+              ),
+              const SizedBox(height: 5),
               TextFormField(
                 controller: _passwordController,
                 decoration: InputDecoration(
@@ -319,22 +320,22 @@ class _VerificationState extends State<Verification> {
                   return null;
                 },
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _verifyAndSave,
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
-                      Color.fromARGB(255, 24, 61, 91)),
+                      const Color.fromARGB(255, 24, 61, 91)),
                   shape: MaterialStateProperty.all<OutlinedBorder>(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                   ),
                   minimumSize: MaterialStateProperty.all<Size>(
-                    Size(double.infinity, 50),
+                    const Size(double.infinity, 50),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Verify',
                   style: TextStyle(
                     fontSize: 15,

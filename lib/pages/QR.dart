@@ -9,13 +9,13 @@ class QrCodeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Your QR Code')),
+      appBar: AppBar(title: const Text('Your QR Code')),
       body: Center(
         child: QrImageView(
-  data: qrData,
-  version: QrVersions.auto,
-  size: 200.0,
-),
+          data: qrData,
+          version: QrVersions.auto,
+          size: 200.0,
+        ),
       ),
     );
   }

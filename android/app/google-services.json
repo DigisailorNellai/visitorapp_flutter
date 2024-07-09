@@ -1,32 +1,13 @@
 {
   "project_info": {
-    "project_number": "1071564261251",
-    "project_id": "visitor-app-flutter",
-    "storage_bucket": "visitor-app-flutter.appspot.com"
+    "project_number": "415416898729",
+    "project_id": "visitor-management-5340e",
+    "storage_bucket": "visitor-management-5340e.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1071564261251:android:438783c1f1c298533598b6",
-        "android_client_info": {
-          "package_name": "com.example.visitor_app_flu"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCOgrKmF0jLZ1tbA6Zto3mX-39VfFgYZeU"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1071564261251:android:68f4dd538859d9343598b6",
+        "mobilesdk_app_id": "1:415416898729:android:2c0050b3cd4e3b729205b8",
         "android_client_info": {
           "package_name": "com.example.visitor_app_flutter"
         }
@@ -34,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCOgrKmF0jLZ1tbA6Zto3mX-39VfFgYZeU"
+          "current_key": "AIzaSyC04MyC7B2gtO6WtgnnUyf1ouOBvSLgUtI"
         }
       ],
       "services": {

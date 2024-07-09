@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:visitor_app_flutter/pages/user.dart';
-import 'package:visitor_app_flutter/pages/user_information.dart';
+
 import 'package:visitor_app_flutter/widgets/navigationbar.dart';
 
 class calender extends StatefulWidget {
@@ -16,7 +14,7 @@ class _calenderState extends State<calender> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: Icon(Icons.search),
+        leading: const Icon(Icons.search),
         title: Row(
           children: [
             Expanded(
@@ -24,23 +22,21 @@ class _calenderState extends State<calender> {
                 onChanged: (value) {
                   setState(() {});
                 },
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Search',
                   border: InputBorder.none,
                 ),
               ),
             ),
             IconButton(
-              icon: Icon(Icons.notifications),
+              icon: const Icon(Icons.notifications),
               onPressed: () {},
             ),
             PopupMenuButton<String>(
-              icon: Icon(Icons.account_circle),
+              icon: const Icon(Icons.account_circle),
               onSelected: (value) {
                 if (value == 'Option 1') {
-                  GetPage(name: '/UserScreen', page: () => UserScreen());
                 } else if (value == 'Option 2') {
-                  GetPage(name: '/users', page: () => users());
                 } else if (value == 'Option 3') {}
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -79,7 +75,7 @@ class _calenderState extends State<calender> {
           ],
         ),
       ),
-      bottomNavigationBar: NavigationBarBottom(),
+      bottomNavigationBar: const NavigationBarBottom(),
     );
   }
 }

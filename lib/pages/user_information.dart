@@ -1,198 +1,246 @@
-// import 'package:flutter/material.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:math';
 
-// class UserScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:visitor_app_flutter/controller/authcontroller/logout_controller.dart';
+
+import 'package:visitor_app_flutter/functions/shared_prefence.dart';
+
+import 'package:visitor_app_flutter/widgets/navigationbar.dart';
+
+import '../functions/fetch_user.dart';
+
+// class UserInformation extends StatelessWidget {
+//   const UserInformation({super.key});
+//   Future<Map<String, dynamic>?> fetchUserData() async {
+//     final FirebaseAuth _auth = FirebaseAuth.instance;
+//     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+//     User? user = _auth.currentUser;
+//     if (user != null) {
+//       print('User ID: ${user.uid}');
+//       DocumentSnapshot userDoc =
+//           await _firestore.collection('visitors').doc(user.uid).get();
+//       if (userDoc.exists) {
+//         print('User document found: ${userDoc.data()}');
+//         return userDoc.data() as Map<String, dynamic>?;
+//       } else {
+//         // Document does not exist
+//         print('Document does not exist for user: ${user.uid}');
+//         return null;
+//       }
+//     } else {
+//       // No user logged in
+//       print('No user is currently logged in.');
+//       return null;
+//     }
+//   }
 //   @override
 //   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         leading: Icon(Icons.search),
-//         title: Row(
-//           children: [
-//             Expanded(
-//               child: TextFormField(
-//                 decoration: InputDecoration(
-//                   hintText: 'Search',
-//                   border: InputBorder.none,
-//                 ),
+// return Scaffold(
+//   appBar: AppBar(
+//     leading: const Icon(Icons.search),
+//     title: Row(
+//       children: [
+//         Expanded(
+//           child: TextFormField(
+//             onChanged: (value) {},
+//             decoration: const InputDecoration(
+//               hintText: 'Search',
+//               border: InputBorder.none,
+//             ),
+//           ),
+//         ),
+//         IconButton(
+//           icon: const Icon(Icons.notifications),
+//           onPressed: () {},
+//         ),
+//         PopupMenuButton(
+//           icon: const Icon(Icons.account_circle),
+//           onSelected: (value) {
+//             if (value == 'Option 1') {
+//               // Handle My Account
+//             } else if (value == 'Option 2') {
+//               // Handle Settings
+//             } else if (value == 'Option 3') {
+//               // Handle Logout
+//               FirebaseAuth.instance.signOut();
+//             }
+//           },
+//           itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+//             const PopupMenuItem(
+//               value: 'Option 1',
+//               child: Text(
+//                 'My Account',
+//                 style: TextStyle(
+//                     fontFamily: 'Poppins',
+//                     fontSize: 15,
+//                     fontWeight: FontWeight.w500),
 //               ),
 //             ),
-//             IconButton(
-//               icon: Icon(Icons.notifications),
-//               onPressed: () {},
+//             const PopupMenuItem(
+//               value: 'Option 2',
+//               child: Text(
+//                 'Settings',
+//                 style: TextStyle(
+//                     fontFamily: 'Poppins',
+//                     fontSize: 15,
+//                     fontWeight: FontWeight.w500),
+//               ),
 //             ),
-//             IconButton(
-//               icon: Icon(Icons.account_circle),
-//               onPressed: () {},
+//             const PopupMenuItem(
+//               value: 'Option 3',
+//               child: Text(
+//                 'Logout',
+//                 style: TextStyle(
+//                     fontFamily: 'Poppins',
+//                     fontSize: 15,
+//                     fontWeight: FontWeight.w500),
+//               ),
 //             ),
 //           ],
 //         ),
-//       ),
-//       body: StreamBuilder<User?>(
-//         stream: FirebaseAuth.instance.authStateChanges(),
+//       ],
+//     ),
+//   ),
+//       body: FutureBuilder<Map<String, dynamic>?>(
+//         future: fetchUserData(),
 //         builder: (context, snapshot) {
 //           if (snapshot.connectionState == ConnectionState.waiting) {
-//             return Center(child: CircularProgressIndicator());
+//             return const Center(child: CircularProgressIndicator());
+//           } else if (snapshot.hasError) {
+//             print('Error fetching data: ${snapshot.error}');
+//             return const Center(child: Text('Error fetching data'));
+//           } else if (!snapshot.hasData || snapshot.data == null) {
+//             return const Center(child: Text('No user data found'));
 //           }
-
-//           if (snapshot.hasError) {
-//             return Center(child: Text('Error: ${snapshot.error}'));
-//           }
-
-//           if (!snapshot.hasData || snapshot.data == null) {
-//             return Center(child: Text('No user logged in'));
-//           }
-
-//           return _fetchVisitorId(snapshot.data!.uid);
-//         },
-//       ),
-//     );
-//   }
-
-//   Widget _fetchVisitorId(String userId) {
-//     return FutureBuilder<DocumentSnapshot>(
-//       future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
-//       builder: (context, snapshot) {
-//         if (snapshot.connectionState == ConnectionState.waiting) {
-//           return Center(child: CircularProgressIndicator());
-//         }
-
-//         if (snapshot.hasError) {
-//           return Center(child: Text('Error: ${snapshot.error}'));
-//         }
-
-//         if (!snapshot.hasData || !snapshot.data!.exists) {
-//           return Center(child: Text('Visitor ID not found'));
-//         }
-
-//         Map<String, dynamic> data =
-//             snapshot.data!.data() as Map<String, dynamic>;
-
-//         if (!data.containsKey('visitorId')) {
-//           return Center(child: Text('Visitor ID not found in user data'));
-//         }
-
-//         String visitorId = data['visitorId'];
-//         return _buildUserData(visitorId);
-//       },
-//     );
-//   }
-
-//   Widget _buildUserData(String visitorId) {
-//     if (visitorId.isEmpty) {
-//       return Center(child: Text('Invalid visitor ID'));
-//     }
-
-//     return FutureBuilder<DocumentSnapshot>(
-//       future: FirebaseFirestore.instance
-//           .collection('visitors')
-//           .doc(visitorId)
-//           .get(),
-//       builder: (context, snapshot) {
-//         if (snapshot.connectionState == ConnectionState.waiting) {
-//           return Center(child: CircularProgressIndicator());
-//         }
-
-//         if (snapshot.hasError) {
-//           return Center(child: Text('Error: ${snapshot.error}'));
-//         }
-
-//         if (!snapshot.hasData || !snapshot.data!.exists) {
-//           return Center(child: Text('Visitor data not found'));
-//         }
-
-//         Map<String, dynamic> data =
-//             snapshot.data!.data() as Map<String, dynamic>;
-
-//         return SingleChildScrollView(
-//           child: Padding(
-//             padding: EdgeInsets.all(20),
-//             child: Column(
+//           Map<String, dynamic>? userData = snapshot.data;
+//     return SingleChildScrollView(
+//       child: Padding(
+//         padding: const EdgeInsets.all(20),
+//         child: Column(
+//           children: [
+//             Row(
 //               children: [
-//                 Row(
+//                 const Icon(
+//                   Icons.abc,
+//                   size: 40,
+//                 ),
+//                 const SizedBox(
+//                   width: 20,
+//                 ),
+//                 Column(
+//                   mainAxisAlignment: MainAxisAlignment.start,
+//                   crossAxisAlignment: CrossAxisAlignment.start,
 //                   children: [
-//                     Icon(Icons.account_circle),
-//                     SizedBox(width: 20),
-//                     Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                     Text(
+//                       userData!['name'] ?? 'Name not found',
+//                       style: const TextStyle(
+//                           fontFamily: 'Poppins',
+//                           fontSize: 20,
+//                           fontWeight: FontWeight.bold),
+//                     ),
+//                     Row(
 //                       children: [
-//                         Text(
-//                           data['name'] ?? 'Name not available',
-//                           style: TextStyle(
-//                             fontFamily: 'Poppins',
-//                             fontSize: 20,
-//                             fontWeight: FontWeight.bold,
-//                           ),
+//                         const Icon(
+//                           Icons.shopping_bag,
 //                         ),
-//                         Row(
-//                           children: [
-//                             Icon(Icons.shopping_bag),
-//                             Text(
-//                               data['role'] ?? 'Role not available',
-//                               style: TextStyle(
-//                                 fontFamily: 'Poppins',
-//                                 fontSize: 18,
-//                                 fontWeight: FontWeight.w300,
-//                               ),
-//                             ),
-//                           ],
+//                         Text(
+//                           userData['role'] ?? 'Role not found',
+//                           style: const TextStyle(
+//                               fontFamily: 'Poppins',
+//                               fontSize: 15,
+//                               fontWeight: FontWeight.w400),
 //                         ),
 //                       ],
 //                     ),
 //                   ],
 //                 ),
-//                 SizedBox(height: 30),
-//                 buildInfoCard(Icons.phone, 'Phone',
-//                     data['phone'] ?? 'Phone not available'),
-//                 SizedBox(height: 40),
-//                 buildInfoCard(Icons.mail, 'Email',
-//                     data['email'] ?? 'Email not available'),
-//                 SizedBox(height: 40),
-//                 buildInfoCard(Icons.shopping_bag, 'Role',
-//                     data['role'] ?? 'Role not available'),
-//                 SizedBox(height: 40),
-//                 buildInfoCard(Icons.account_balance, 'Department',
-//                     data['department'] ?? 'Department not available'),
 //               ],
 //             ),
-//           ),
-//         );
-//       },
+//             const SizedBox(
+//               height: 40,
+//             ),
+//             _buildInfoContainer(
+//               icon: Icons.phone,
+//               label: 'Phone',
+//               value: userData['phone'] ?? 'Phone not found',
+//             ),
+//             const SizedBox(
+//               height: 50,
+//             ),
+//             _buildInfoContainer(
+//               icon: Icons.email,
+//               label: 'Email',
+//               value: userData['email'] ?? 'Email not found',
+//             ),
+//             const SizedBox(
+//               height: 50,
+//             ),
+//             _buildInfoContainer(
+//               icon: Icons.shopping_bag_rounded,
+//               label: 'Role',
+//               value: userData['role'] ?? 'Role not found',
+//             ),
+//             const SizedBox(
+//               height: 50,
+//             ),
+//             _buildInfoContainer(
+//               icon: Icons.folder,
+//               label: 'Department',
+//               value: userData['department'] ?? 'Department not found',
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   },
+// ),
+// bottomNavigationBar: const NavigationBarBottom(),
 //     );
 //   }
-
-//   Widget buildInfoCard(IconData icon, String title, String value) {
+//   Widget _buildInfoContainer({
+//     required IconData icon,
+//     required String label,
+//     required String value,
+//   }) {
 //     return Container(
-//       padding: EdgeInsets.all(7),
-//       width: 340,
-//       height: 80,
-//       decoration: BoxDecoration(
-//         color: const Color.fromARGB(255, 197, 196, 196),
-//         borderRadius: BorderRadius.circular(10),
+//       decoration: const BoxDecoration(
+//         borderRadius: BorderRadius.all(Radius.circular(10)),
+//         color: Colors.grey,
 //       ),
+//       height: 80,
+//       width: 360,
 //       child: Row(
 //         children: [
+//           const SizedBox(
+//             width: 10,
+//           ),
 //           Icon(icon),
-//           SizedBox(width: 10),
+//           const SizedBox(
+//             width: 10,
+//           ),
 //           Column(
 //             crossAxisAlignment: CrossAxisAlignment.start,
 //             children: [
+//               const SizedBox(
+//                 height: 10,
+//               ),
 //               Text(
-//                 title,
-//                 style: TextStyle(
-//                   fontFamily: 'Poppins',
-//                   fontSize: 18,
-//                   fontWeight: FontWeight.normal,
-//                 ),
+//                 label,
+//                 style: const TextStyle(
+//                     fontFamily: 'Poppins',
+//                     fontSize: 16,
+//                     fontWeight: FontWeight.w400),
+//               ),
+//               const SizedBox(
+//                 height: 5,
 //               ),
 //               Text(
 //                 value,
-//                 style: TextStyle(
-//                   fontFamily: 'Poppins',
-//                   fontSize: 20,
-//                   fontWeight: FontWeight.bold,
-//                 ),
+//                 style: const TextStyle(
+//                     fontFamily: 'Poppins',
+//                     fontSize: 18,
+//                     fontWeight: FontWeight.bold),
 //               ),
 //             ],
 //           ),
@@ -202,21 +250,248 @@
 //   }
 // }
 
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// class UserInformation extends StatelessWidget {
+//   const UserInformation({super.key});
+//   Future<Map<String, dynamic>> _getUserData() async {
+//     final user = FirebaseAuth.instance.currentUser;
+//     if (user != null) {
+//       try {
+//         final doc = await FirebaseFirestore.instance
+//             .collection('visitors')
+//             .doc(user.uid)
+//             .get();
+//         if (doc.exists) {
+//           return doc.data() ?? {};
+//         } else {
+//           print('Document does not exist');
+//           return {};
+//         }
+//       } catch (e) {
+//         print('Error fetching user data: $e');
+//         return {};
+//       }
+//     }
+//     print('User not logged in');
+//     return {};
+//   }
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         leading: const Icon(Icons.search),
+//         title: Row(
+//           children: [
+//             Expanded(
+//               child: TextFormField(
+//                 onChanged: (value) {},
+//                 decoration: const InputDecoration(
+//                   hintText: 'Search',
+//                   border: InputBorder.none,
+//                 ),
+//               ),
+//             ),
+//             IconButton(
+//               icon: const Icon(Icons.notifications),
+//               onPressed: () {},
+//             ),
+//             PopupMenuButton(
+//               icon: const Icon(Icons.account_circle),
+//               onSelected: (value) {
+//                 if (value == 'Option 1') {
+//                   // Handle My Account
+//                 } else if (value == 'Option 2') {
+//                   // Handle Settings
+//                 } else if (value == 'Option 3') {
+//                   FirebaseAuth.instance.signOut();
+//                 }
+//               },
+//               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+//                 const PopupMenuItem(
+//                   value: 'Option 1',
+//                   child: Text(
+//                     'My Account',
+//                     style: TextStyle(
+//                         fontFamily: 'Poppins',
+//                         fontSize: 15,
+//                         fontWeight: FontWeight.w500),
+//                   ),
+//                 ),
+//                 const PopupMenuItem(
+//                   value: 'Option 2',
+//                   child: Text(
+//                     'Settings',
+//                     style: TextStyle(
+//                         fontFamily: 'Poppins',
+//                         fontSize: 15,
+//                         fontWeight: FontWeight.w500),
+//                   ),
+//                 ),
+//                 const PopupMenuItem(
+//                   value: 'Option 3',
+//                   child: Text(
+//                     'Logout',
+//                     style: TextStyle(
+//                         fontFamily: 'Poppins',
+//                         fontSize: 15,
+//                         fontWeight: FontWeight.w500),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ],
+//         ),
+//       ),
+//       body: FutureBuilder<Map<String, dynamic>>(
+//         future: _getUserData(),
+//         builder: (context, snapshot) {
+//           if (snapshot.connectionState == ConnectionState.waiting) {
+//             return const Center(child: CircularProgressIndicator());
+//           }
+//           if (!snapshot.hasData) {
+//             return const Center(child: Text('No user data found'));
+//           }
+//           final userData = snapshot.data!;
+//           return SingleChildScrollView(
+//             child: Padding(
+//               padding: const EdgeInsets.all(20),
+//               child: Column(
+//                 children: [
+//                   _buildUserHeader(userData),
+//                   const SizedBox(height: 40),
+//                   _buildInfoContainer(
+//                     icon: Icons.phone,
+//                     label: 'Phone',
+//                     value: userData['phone'] ?? 'Phone not found',
+//                   ),
+//                   const SizedBox(height: 50),
+//                   _buildInfoContainer(
+//                     icon: Icons.email,
+//                     label: 'Email',
+//                     value: userData['email'] ?? 'Email not found',
+//                   ),
+//                   const SizedBox(height: 50),
+//                   _buildInfoContainer(
+//                     icon: Icons.shopping_bag_rounded,
+//                     label: 'Role',
+//                     value: userData['role'] ?? 'Role not found',
+//                   ),
+//                   const SizedBox(height: 50),
+//                   _buildInfoContainer(
+//                     icon: Icons.folder,
+//                     label: 'Department',
+//                     value: userData['department'] ?? 'Department not found',
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           );
+//         },
+//       ),
+//       bottomNavigationBar: const NavigationBarBottom(),
+//     );
+//   }
+//   Widget _buildUserHeader(Map<String, dynamic> userData) {
+//     return Row(
+//       children: [
+//         const Icon(
+//           Icons.abc,
+//           size: 40,
+//         ),
+//         const SizedBox(width: 20),
+//         Column(
+//           mainAxisAlignment: MainAxisAlignment.start,
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text(
+//               userData['name'] ?? 'Name not found',
+//               style: const TextStyle(
+//                   fontFamily: 'Poppins',
+//                   fontSize: 20,
+//                   fontWeight: FontWeight.bold),
+//             ),
+//             Row(
+//               children: [
+//                 const Icon(Icons.shopping_bag),
+//                 Text(
+//                   userData['role'] ?? 'Role not found',
+//                   style: const TextStyle(
+//                       fontFamily: 'Poppins',
+//                       fontSize: 15,
+//                       fontWeight: FontWeight.w400),
+//                 ),
+//               ],
+//             ),
+//           ],
+//         ),
+//       ],
+//     );
+//   }
+//   Widget _buildInfoContainer({
+//     required IconData icon,
+//     required String label,
+//     required String value,
+//   }) {
+//     return Container(
+//       decoration: const BoxDecoration(
+//         borderRadius: BorderRadius.all(Radius.circular(10)),
+//         color: Colors.grey,
+//       ),
+//       height: 80,
+//       width: 360,
+//       child: Row(
+//         children: [
+//           const SizedBox(width: 10),
+//           Icon(icon),
+//           const SizedBox(width: 10),
+//           Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children: [
+//               const SizedBox(height: 10),
+//               Text(
+//                 label,
+//                 style: const TextStyle(
+//                     fontFamily: 'Poppins',
+//                     fontSize: 16,
+//                     fontWeight: FontWeight.w400),
+//               ),
+//               const SizedBox(height: 5),
+//               Text(
+//                 value,
+//                 style: const TextStyle(
+//                     fontFamily: 'Poppins',
+//                     fontSize: 18,
+//                     fontWeight: FontWeight.bold),
+//               ),
+//             ],
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
-class UserScreen extends StatelessWidget {
+class UserInformation extends StatelessWidget {
+  UserInformation({super.key});
+
+  final SharedPrefence cookies = SharedPrefence();
+
+  final UserService userService = UserService();
+
+  final AuthController authController = Get.put(AuthController());
+
   @override
   Widget build(BuildContext context) {
+    // Future<dynamic>
+    Future<dynamic> userId = cookies.getUserId();
     return Scaffold(
       appBar: AppBar(
-        leading: Icon(Icons.search),
+        leading: const Icon(Icons.search),
         title: Row(
           children: [
             Expanded(
               child: TextFormField(
-                decoration: InputDecoration(
+                onChanged: (value) {},
+                decoration: const InputDecoration(
                   hintText: 'Search',
                   border: InputBorder.none,
                 ),
@@ -226,149 +501,483 @@ class UserScreen extends StatelessWidget {
               icon: const Icon(Icons.notifications),
               onPressed: () {},
             ),
-            IconButton(
+            PopupMenuButton(
               icon: const Icon(Icons.account_circle),
-              onPressed: () {},
+              onSelected: (value) {
+                if (value == 'Option 1') {
+                  // Handle My Account
+                } else if (value == 'Option 2') {
+                  // Handle Settings
+                } else if (value == 'Option 3') {
+                  authController.signOutAndNavigateToSignIn();
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem(
+                  value: 'Option 1',
+                  child: Text(
+                    'My Account',
+                    style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500),
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'Option 2',
+                  child: Text(
+                    'Settings',
+                    style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500),
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'Option 3',
+                  child: Text(
+                    'Logout',
+                    style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
-      body: FutureBuilder<User?>(
-        future: FirebaseAuth.instance.authStateChanges().first,
-        builder: (BuildContext context, AsyncSnapshot<User?> userSnapshot) {
-          if (userSnapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (userSnapshot.hasError) {
-            return Center(child: Text('Error: ${userSnapshot.error}'));
-          }
-
-          if (!userSnapshot.hasData) {
-            print('No user is logged in');
-            return const Center(child: Text('No user is logged in'));
-          }
-
-          String userId = userSnapshot.data!.uid;
-
-          return FutureBuilder<DocumentSnapshot>(
-            future: FirebaseFirestore.instance
-                .collection('users')
-                .doc(userId)
-                .get(),
-            builder: (BuildContext context,
-                AsyncSnapshot<DocumentSnapshot> snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              }
-
-              if (!snapshot.hasData || !snapshot.data!.exists) {
-                return const Center(child: Text('User data not found'));
-              }
-
-              Map<String, dynamic> data =
-                  snapshot.data!.data() as Map<String, dynamic>;
-
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.account_circle),
-                          const SizedBox(width: 20),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                data['name'] ?? 'Name not available',
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Row(
+      body: FutureBuilder<String?>(
+          future: cookies.getUserId(),
+          builder: (context, userIdSnapshot) {
+            if (userIdSnapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (userIdSnapshot.hasError) {
+              return Center(child: Text('Error: ${userIdSnapshot.error}'));
+            } else if (userIdSnapshot.hasData) {
+              String? userId = userIdSnapshot.data;
+              if (userId == null) {
+                return const Center(child: Text('No user ID available'));
+              } else {
+                return FutureBuilder<Map<String, dynamic>?>(
+                    future: userService.getUserDetails(userId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (snapshot.hasData) {
+                        Map<String, dynamic>? userData = snapshot.data;
+                        print('User details: $userData');
+                        if (userData == null) {
+                          return const Center(
+                              child: Text('No user details available'));
+                        } else {
+                          return SingleChildScrollView(
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
                                 children: [
-                                  const Icon(Icons.shopping_bag),
-                                  Text(
-                                    data['role'] ?? 'Role not available',
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w300,
-                                    ),
+                                  _buildUserHeader(userData),
+                                  const SizedBox(height: 40),
+                                  _buildInfoContainer(
+                                    icon: Icons.phone,
+                                    label: 'Phone',
+                                    value:
+                                        userData['phone'] ?? 'Phone not found',
+                                  ),
+                                  const SizedBox(height: 50),
+                                  _buildInfoContainer(
+                                    icon: Icons.email,
+                                    label: 'Email',
+                                    value:
+                                        userData['email'] ?? 'Email not found',
+                                  ),
+                                  const SizedBox(height: 50),
+                                  _buildInfoContainer(
+                                    icon: Icons.shopping_bag_rounded,
+                                    label: 'Profession',
+                                    value: userData['profession'] ??
+                                        'Profession not found',
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-                      buildInfoCard(Icons.phone, 'Phone',
-                          data['phone'] ?? 'Phone not available'),
-                      const SizedBox(height: 40),
-                      buildInfoCard(Icons.mail, 'Email',
-                          data['email'] ?? 'Email not available'),
-                      const SizedBox(height: 40),
-                      buildInfoCard(Icons.shopping_bag, 'Role',
-                          data['role'] ?? 'Role not available'),
-                      const SizedBox(height: 40),
-                      buildInfoCard(Icons.account_balance, 'Department',
-                          data['department'] ?? 'Department not available'),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
+                            ),
+                          );
+                        }
+                      } else {
+                        return const Center(
+                            child: Text('No user details available'));
+                      }
+                    });
+              }
+            } else {
+              return const Center(child: Text('No user details available'));
+            }
+          }),
+      bottomNavigationBar: const NavigationBarBottom(),
     );
   }
+}
 
-  Widget buildInfoCard(IconData icon, String title, String value) {
-    return Container(
-      padding: const EdgeInsets.all(7),
-      width: 340,
-      height: 80,
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 197, 196, 196),
-        borderRadius: BorderRadius.circular(10),
+// Future<Map<String, dynamic>> _getUserData(String uid) async {
+//   try {
+//     final doc = await FirebaseFirestore.instance
+//         .collection('visitors')
+//         .doc(uid)
+//         .get();
+//     if (doc.exists) {
+//       return doc.data() ?? {};
+//     } else {
+//       print('Document does not exist');
+//       return {};
+//     }
+//   } catch (e) {
+//     print('Error fetching user data: $e');
+//     return {};
+//   }
+// }
+
+Color generateColor(String input) {
+  final Random random = Random(input.hashCode);
+  return Color.fromRGBO(
+    random.nextInt(256),
+    random.nextInt(256),
+    random.nextInt(256),
+    1,
+  );
+}
+
+Widget _buildUserHeader(Map<String, dynamic> userData) {
+  String userName = userData['name'] ?? 'Name not found';
+  String firstLetter = userName.isNotEmpty ? userName[0] : '';
+  Color backgroundColor = generateColor(userName);
+
+  return Row(
+    children: [
+      CircleAvatar(
+        radius: 20,
+        child: Text(
+          firstLetter,
+          style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white),
+        ),
+        backgroundColor: backgroundColor,
       ),
-      child: Row(
+      const SizedBox(width: 20),
+      Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Text(
+            userName,
+            style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 20,
+                fontWeight: FontWeight.bold),
+          ),
+          Row(
             children: [
+              const Icon(Icons.shopping_bag),
               Text(
-                title,
+                userData['role'] ?? 'Role not found',
                 style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 18,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                    fontFamily: 'Poppins',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400),
               ),
             ],
           ),
         ],
       ),
-    );
-  }
+    ],
+  );
 }
+
+Widget _buildInfoContainer({
+  required IconData icon,
+  required String label,
+  required String value,
+}) {
+  return Container(
+    decoration: const BoxDecoration(
+      borderRadius: BorderRadius.all(Radius.circular(10)),
+      //color: Colors.grey,
+    ),
+    height: 80,
+    width: 360,
+    child: Row(
+      children: [
+        const SizedBox(width: 10),
+        Icon(icon),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              value,
+              style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+// import 'dart:math';
+// import 'package:flutter/material.dart';
+// import 'package:get/get.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:visitor_app_flutter/controller/authcontroller/logout_controller.dart';
+// import 'package:visitor_app_flutter/functions/shared_prefence.dart';
+// import 'package:visitor_app_flutter/widgets/navigationbar.dart';
+// import '../functions/fetch_user.dart';
+
+// class UserInformation extends StatelessWidget {
+//   UserInformation({super.key});
+
+//   final SharedPrefence cookies = SharedPrefence();
+//   final FirebaseFirestore firestore = FirebaseFirestore.instance;
+//   final AuthController authController = Get.put(AuthController());
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         leading: const Icon(Icons.search),
+//         title: Row(
+//           children: [
+//             Expanded(
+//               child: TextFormField(
+//                 onChanged: (value) {},
+//                 decoration: const InputDecoration(
+//                   hintText: 'Search',
+//                   border: InputBorder.none,
+//                 ),
+//               ),
+//             ),
+//             IconButton(
+//               icon: const Icon(Icons.notifications),
+//               onPressed: () {},
+//             ),
+//             PopupMenuButton(
+//               icon: const Icon(Icons.account_circle),
+//               onSelected: (value) {
+//                 if (value == 'Option 1') {
+//                   // Handle My Account
+//                 } else if (value == 'Option 2') {
+//                   // Handle Settings
+//                 } else if (value == 'Option 3') {
+//                   authController.signOutAndNavigateToSignIn();
+//                 }
+//               },
+//               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+//                 const PopupMenuItem(
+//                   value: 'Option 1',
+//                   child: Text(
+//                     'My Account',
+//                     style: TextStyle(
+//                         fontFamily: 'Poppins',
+//                         fontSize: 15,
+//                         fontWeight: FontWeight.w500),
+//                   ),
+//                 ),
+//                 const PopupMenuItem(
+//                   value: 'Option 2',
+//                   child: Text(
+//                     'Settings',
+//                     style: TextStyle(
+//                         fontFamily: 'Poppins',
+//                         fontSize: 15,
+//                         fontWeight: FontWeight.w500),
+//                   ),
+//                 ),
+//                 const PopupMenuItem(
+//                   value: 'Option 3',
+//                   child: Text(
+//                     'Logout',
+//                     style: TextStyle(
+//                         fontFamily: 'Poppins',
+//                         fontSize: 15,
+//                         fontWeight: FontWeight.w500),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ],
+//         ),
+//       ),
+//       body: FutureBuilder<String?>(
+//           future: cookies.getUserId(),
+//           builder: (context, userIdSnapshot) {
+//             if (userIdSnapshot.connectionState == ConnectionState.waiting) {
+//               return const Center(child: CircularProgressIndicator());
+//             } else if (userIdSnapshot.hasError) {
+//               return Center(child: Text('Error: ${userIdSnapshot.error}'));
+//             } else if (userIdSnapshot.hasData) {
+//               String? userId = userIdSnapshot.data;
+//               if (userId == null) {
+//                 return const Center(child: Text('No user ID available'));
+//               } else {
+//                 return FutureBuilder<DocumentSnapshot>(
+//                     future: firestore.collection('staff').doc(userId).get(),
+//                     builder: (context, snapshot) {
+//                       if (snapshot.connectionState == ConnectionState.waiting) {
+//                         return const Center(child: CircularProgressIndicator());
+//                       } else if (snapshot.hasError) {
+//                         return Center(child: Text('Error: ${snapshot.error}'));
+//                       } else if (snapshot.hasData) {
+//                         var userData =
+//                             snapshot.data?.data() as Map<String, dynamic>?;
+//                         print('User details: $userData');
+//                         if (userData == null) {
+//                           return const Center(
+//                               child: Text('No user details available'));
+//                         } else {
+//                           return SingleChildScrollView(
+//                             child: Padding(
+//                               padding: const EdgeInsets.all(20),
+//                               child: Column(
+//                                 children: [
+//                                   _buildUserHeader(userData),
+//                                   const SizedBox(height: 40),
+//                                   _buildInfoContainer(
+//                                     icon: Icons.phone,
+//                                     label: 'Phone',
+//                                     value:
+//                                         userData['phone'] ?? 'Phone not found',
+//                                   ),
+//                                   const SizedBox(height: 50),
+//                                   _buildInfoContainer(
+//                                     icon: Icons.email,
+//                                     label: 'Email',
+//                                     value:
+//                                         userData['email'] ?? 'Email not found',
+//                                   ),
+//                                   const SizedBox(height: 50),
+//                                 ],
+//                               ),
+//                             ),
+//                           );
+//                         }
+//                       } else {
+//                         return const Center(
+//                             child: Text('No user details available'));
+//                       }
+//                     });
+//               }
+//             } else {
+//               return const Center(child: Text('No user details available'));
+//             }
+//           }),
+//       bottomNavigationBar: const NavigationBarBottom(),
+//     );
+//   }
+// }
+
+// Color generateColor(String input) {
+//   final Random random = Random(input.hashCode);
+//   return Color.fromRGBO(
+//     random.nextInt(256),
+//     random.nextInt(256),
+//     random.nextInt(256),
+//     1,
+//   );
+// }
+
+// Widget _buildUserHeader(Map<String, dynamic> userData) {
+//   String userName = userData['name'] ?? 'Name not found';
+//   String firstLetter = userName.isNotEmpty ? userName[0] : '';
+//   Color backgroundColor = generateColor(userName);
+
+//   return Row(
+//     children: [
+//       CircleAvatar(
+//         radius: 20,
+//         child: Text(
+//           firstLetter,
+//           style: TextStyle(
+//               fontFamily: 'Poppins',
+//               fontSize: 20,
+//               fontWeight: FontWeight.bold,
+//               color: Colors.white),
+//         ),
+//         backgroundColor: backgroundColor,
+//       ),
+//       const SizedBox(width: 20),
+//       Column(
+//         mainAxisAlignment: MainAxisAlignment.start,
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Text(
+//             userName,
+//             style: const TextStyle(
+//                 fontFamily: 'Poppins',
+//                 fontSize: 20,
+//                 fontWeight: FontWeight.bold),
+//           ),
+//         ],
+//       ),
+//     ],
+//   );
+// }
+
+// Widget _buildInfoContainer({
+//   required IconData icon,
+//   required String label,
+//   required String value,
+// }) {
+//   return Container(
+//     decoration: const BoxDecoration(
+//       borderRadius: BorderRadius.all(Radius.circular(10)),
+//       //color: Colors.grey,
+//     ),
+//     height: 80,
+//     width: 360,
+//     child: Row(
+//       children: [
+//         const SizedBox(width: 10),
+//         Icon(icon),
+//         const SizedBox(width: 10),
+//         Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             const SizedBox(height: 10),
+//             Text(
+//               label,
+//               style: const TextStyle(
+//                   fontFamily: 'Poppins',
+//                   fontSize: 16,
+//                   fontWeight: FontWeight.w400),
+//             ),
+//             const SizedBox(height: 5),
+//             Text(
+//               value,
+//               style: const TextStyle(
+//                   fontFamily: 'Poppins',
+//                   fontSize: 16,
+//                   fontWeight: FontWeight.bold),
+//             ),
+//           ],
+//         ),
+//       ],
+//     ),
+//   );
+// }

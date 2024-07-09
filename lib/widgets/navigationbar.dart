@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:visitor_app_flutter/pages/QR.dart';
 import 'package:visitor_app_flutter/pages/appointment.dart';
-import 'package:visitor_app_flutter/pages/calender.dart';
+
 import 'package:visitor_app_flutter/pages/main_page.dart';
-import 'package:visitor_app_flutter/pages/user.dart';
 
 class NavigationBarBottom extends StatefulWidget {
   const NavigationBarBottom({super.key});
@@ -23,44 +23,21 @@ class _NavigationBarBottomState extends State<NavigationBarBottom> {
           child: BottomNavigationBar(
             type: BottomNavigationBarType.fixed,
             backgroundColor: const Color.fromARGB(255, 15, 66, 107),
-            selectedItemColor: Colors.green,
             onTap: (index) {
               setState(() {
                 MyIndex = index;
               });
               switch (index) {
                 case 0:
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Mainpage(),
-                    ),
-                  );
+                  Get.to(() => Mainpage());
                   break;
                 case 1:
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => QrCodeScreen(qrData: ''),
-                    ),
-                  );
+                  Get.to(() => QrCodeScreen(qrData: ''));
                   break;
                 case 2:
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BookAppointmentScreen(),
-                    ),
-                  );
+                  Get.to(() => BookAppointmentScreen());
                   break;
                 case 3:
-                  var docRef;
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => AppointmentDetailsScreen(visitorName: '', appointmentDate: , appointmentTime: appointmentTime, onAccept: onAccept, onDecline: onDecline)
-                  //   ),
-                  // );
                   break;
               }
             },

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:visitor_app_flutter/pages/QR.dart';
-import 'package:visitor_app_flutter/widgets/navigationbar.dart';
+
 import 'package:visitor_app_flutter/pages/user.dart';
 
 class BookAppointmentScreen extends StatefulWidget {
@@ -168,16 +168,16 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Book Appointment')),
+      appBar: AppBar(title: const Text('Book Appointment')),
       body: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Pick a date for Appointment',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
@@ -186,23 +186,24 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 children: [
                   IconButton(
                     onPressed: _selectDate,
-                    icon: Icon(Icons.calendar_today),
+                    icon: const Icon(Icons.calendar_today),
                   ),
                   SizedBox(width: 10),
                   Text(
                     _selectedDate != null
                         ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
                         : 'Pick a Date',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 12),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
-              Text(
+              const SizedBox(height: 20),
+              const Text(
                 'Select Staff',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               DropdownButton<String>(
                 hint: Text('Select Staff'),
                 value: _selectedStaff,
@@ -219,14 +220,14 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                   );
                 }).toList(),
               ),
-              SizedBox(height: 20),
-              Text(
+              const SizedBox(height: 20),
+              const Text(
                 'Select the department',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               DropdownButton<String>(
-                hint: Text('Select Department'),
+                hint: const Text('Select Department'),
                 value: _selectedStaffDepartment,
                 onChanged: (newValue) {
                   setState(() {
@@ -241,14 +242,14 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                   );
                 }).toList(),
               ),
-              SizedBox(height: 20),
-              Text(
+              const SizedBox(height: 20),
+              const Text(
                 'Select Time',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               DropdownButton<String>(
-                hint: Text('Select Time'),
+                hint: const Text('Select Time'),
                 value: _selectedTime == null
                     ? null
                     : formatTimeOfDay(_selectedTime!),
@@ -262,14 +263,14 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                   );
                 }).toList(),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
-                style: ButtonStyle(
+                style: const ButtonStyle(
                     backgroundColor: WidgetStatePropertyAll(
                   Color.fromARGB(255, 15, 66, 107),
                 )),
                 onPressed: _submitForm,
-                child: Text(
+                child: const Text(
                   'Book Appointment',
                   style: TextStyle(color: Colors.white),
                 ),
