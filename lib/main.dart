@@ -53,11 +53,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:visitor_app_flutter/firebase_options.dart';
 import 'package:visitor_app_flutter/pages/main_page.dart';
+import 'package:visitor_app_flutter/pages/security_page.dart';
 import 'package:visitor_app_flutter/pages/signin.dart';
-import 'package:visitor_app_flutter/pages/user_information.dart';
-import 'package:visitor_app_flutter/pages/visitor_page.dart';
+import 'package:visitor_app_flutter/pages/staff_home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
@@ -74,13 +73,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
+      initialRoute: '/Signin',
       getPages: [
-        GetPage(name: '/', page: () => const AuthCheckPage()),
         GetPage(name: '/Signin', page: () => SignInScreen()),
         GetPage(name: '/Mainpage', page: () => Mainpage()),
-        GetPage(name: '/Visitorpage', page: () => const Visitorpage()),
-        GetPage(name: '/UserInformation', page: () => UserInformation()),
+        GetPage(name: '/Staffhomepage', page: () =>  Staff_Home_Page()),
+        GetPage(name: '/Securitypage', page: () => SecurityPage()),
       ],
     );
   }

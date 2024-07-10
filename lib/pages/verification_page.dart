@@ -1,44 +1,55 @@
 import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:visitor_app_flutter/pages/main_page.dart';
-import 'package:crypto/crypto.dart';
-import 'dart:convert';
-import 'package:firebase_storage/firebase_storage.dart';
 
-class Verification extends StatefulWidget {
-  final String uid;
+import 'main_page.dart';
+
+class VerificationPage extends StatefulWidget {
   final String name;
   final String email;
   final String phone;
   final String profession;
 
-  Verification({
+  VerificationPage({
     Key? key,
-    required this.uid,
     required this.name,
     required this.email,
     required this.phone,
     required this.profession,
-  });
+  }) : super(key: key);
 
   @override
-  State<Verification> createState() => _VerificationState();
+  State<VerificationPage> createState() => _VerificationPageState();
 }
 
-class _VerificationState extends State<Verification> {
+class _VerificationPageState extends State<VerificationPage> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _aadhaarController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
 
-  File? _imageFile;
-  File? _image;
+  File? _imageFile; // Aadhaar image
+  File? _selfieFile; // Selfie image
 
-  Future<void> _pickImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+  Future<void> _pickAadhaarImage() async {
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 100,
+    );
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _captureAadhaarImage() async {
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      imageQuality: 100,
+    );
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -55,7 +66,7 @@ class _VerificationState extends State<Verification> {
 
     if (pickedFile != null) {
       setState(() {
-        _image = File(pickedFile.path);
+        _selfieFile = File(pickedFile.path);
       });
     }
   }
@@ -77,29 +88,18 @@ class _VerificationState extends State<Verification> {
 
   Future<void> _verifyAndSave() async {
     try {
-      final QuerySnapshot result = await FirebaseFirestore.instance
-          .collection('kyc')
-          .where('email', isEqualTo: widget.email)
-          .get();
-      final List<DocumentSnapshot> documents = result.docs;
-
-      if (documents.isNotEmpty) {
+      if (_imageFile == null || _selfieFile == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text("Email already exists. Please use a different email."),
+          SnackBar(
+            content: Text("Please upload both Aadhaar image and Selfie."),
           ),
         );
-        return; // Stop execution if email exists
+        return; // Stop execution if images are missing
       }
 
-      // Proceed with saving
-      String hashedPassword = _hashPassword(_passwordController.text);
-
       // Upload images to Firebase Storage
-      String? aadhaarImageUrl =
-          await _uploadImageToStorage(_imageFile, 'aadhaar');
-      String? selfieUrl = await _uploadImageToStorage(_image, 'selfie');
+      String? aadhaarImageUrl = await _uploadImageToStorage(_imageFile, 'aadhaar');
+      String? selfieUrl = await _uploadImageToStorage(_selfieFile, 'selfie');
 
       // Save data to Firestore
       await FirebaseFirestore.instance.collection('kyc').add({
@@ -107,15 +107,15 @@ class _VerificationState extends State<Verification> {
         'aadhaar_image_url': aadhaarImageUrl,
         'selfie_url': selfieUrl,
         'dob': _dateController.text,
-        'password': hashedPassword,
       });
 
       // Navigate to the main page after successful verification
       Get.to(() => Mainpage());
+
     } catch (e) {
       print('Error verifying and saving: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("Failed to verify and save. Please try again."),
         ),
       );
@@ -130,7 +130,7 @@ class _VerificationState extends State<Verification> {
           .ref()
           .child('$folderName/${DateTime.now().millisecondsSinceEpoch}');
       UploadTask uploadTask = ref.putFile(image);
-      TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+      TaskSnapshot taskSnapshot = await uploadTask;
       String downloadUrl = await taskSnapshot.ref.getDownloadURL();
       return downloadUrl;
     } catch (e) {
@@ -139,23 +139,17 @@ class _VerificationState extends State<Verification> {
     }
   }
 
-  String _hashPassword(String password) {
-    var bytes = utf8.encode(password);
-    var digest = sha256.convert(bytes);
-    return digest.toString();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
-              const Align(
+              SizedBox(height: 20),
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Aadhaar Number',
@@ -165,7 +159,7 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              const SizedBox(height: 5),
+              SizedBox(height: 5),
               TextFormField(
                 controller: _aadhaarController,
                 decoration: InputDecoration(
@@ -175,8 +169,8 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              const Align(
+              SizedBox(height: 20),
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Aadhaar card Photo',
@@ -186,18 +180,40 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               Center(
                 child: GestureDetector(
-                  onTap: _pickImage,
+                  onTap: () async {
+                    final action = await showDialog<int>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('Choose the source'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, 0),
+                            child: Text('Camera'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, 1),
+                            child: Text('Gallery'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (action == 0) {
+                      _captureAadhaarImage(); // Capture Aadhaar card photo
+                    } else if (action == 1) {
+                      _pickAadhaarImage(); // Pick Aadhaar card photo from gallery
+                    }
+                  },
                   child: Card(
                     color: Colors.grey[200],
                     child: Container(
-                      width: 400,
+                      width: double.infinity,
                       height: 200,
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.all(16),
                       child: _imageFile == null
-                          ? const Column(
+                          ? Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.camera_alt,
@@ -215,8 +231,8 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
-              const Align(
+              SizedBox(height: 10),
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Selfie',
@@ -226,7 +242,7 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              const SizedBox(height: 5),
+              SizedBox(height: 5),
               Center(
                 child: GestureDetector(
                   onTap: _captureSelfie,
@@ -236,20 +252,20 @@ class _VerificationState extends State<Verification> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Container(
-                      width: 400,
+                      width: double.infinity,
                       height: 250,
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.all(16),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _image == null
+                          _selfieFile == null
                               ? Icon(
                                   Icons.camera_alt,
                                   size: 50,
                                   color: Colors.grey[700],
                                 )
                               : Image.file(
-                                  _image!,
+                                  _selfieFile!,
                                   width: 150,
                                   height: 150,
                                   fit: BoxFit.cover,
@@ -260,8 +276,8 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
-              const Align(
+              SizedBox(height: 10),
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Date of Birth',
@@ -271,7 +287,7 @@ class _VerificationState extends State<Verification> {
                   ),
                 ),
               ),
-              const SizedBox(height: 5),
+              SizedBox(height: 5),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextFormField(
@@ -279,7 +295,7 @@ class _VerificationState extends State<Verification> {
                   decoration: InputDecoration(
                     prefixIcon: GestureDetector(
                       onTap: () => _selectDate(context),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.calendar_today),
@@ -292,50 +308,22 @@ class _VerificationState extends State<Verification> {
                   readOnly: true,
                 ),
               ),
-              const SizedBox(height: 10),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Password',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 5),
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  hintText: 'Enter your password',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _verifyAndSave,
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
-                      const Color.fromARGB(255, 24, 61, 91)),
+                      Color.fromARGB(255, 24, 61, 91)),
                   shape: MaterialStateProperty.all<OutlinedBorder>(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                   ),
                   minimumSize: MaterialStateProperty.all<Size>(
-                    const Size(double.infinity, 50),
+                    Size(double.infinity, 50),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Verify',
                   style: TextStyle(
                     fontSize: 15,

@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:visitor_app_flutter/widgets/navigationbar2.dart';
-
 import '../controller/authcontroller/logout_controller.dart';
+import 'QR_result.dart';
+ 
+class SecurityPage extends StatefulWidget {
+  const SecurityPage({super.key});
 
-class Staff_Home_Page extends StatelessWidget {
-   Staff_Home_Page({super.key});
+  @override
+  _SecurityPageState createState() => _SecurityPageState();
+}
 
-    final AuthController authController = Get.put(AuthController());
-
+class _SecurityPageState extends State<SecurityPage> {
+  final AuthController authController = Get.put(AuthController());
+  String qrCodeResult = 'Not Yet Scanned';
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +42,7 @@ class Staff_Home_Page extends StatelessWidget {
                 if (value == 'Option 1') {
                   Get.toNamed('/UserInformation');
                 } else if (value == 'Option 2') {
+                  // Add your Settings navigation if needed
                 } else if (value == 'Option 3') {
                   authController.signOutAndNavigateToSignIn();
                 }
@@ -78,8 +83,51 @@ class Staff_Home_Page extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: NavigationBarBottom2(),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Scan Result: $qrCodeResult',
+              style: const TextStyle(fontSize: 20),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                // Navigate to QRViewExample for scanning
+                final result = await Get.to(() => QRViewExample());
+                if (result != null) {
+                  setState(() {
+                    qrCodeResult = result;
+                  });
+                  showDetailsDialog(context, result);
+                }
+              },
+              child: const Text('Scan QR Code'),
+            ),
+          ],
+        ),
+      ),
     );
   }
-  void setState(Null Function() param0) {}
+
+  void showDetailsDialog(BuildContext context, String qrData) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('QR Code Details'),
+          content: Text(qrData),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

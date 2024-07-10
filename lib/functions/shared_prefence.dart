@@ -10,4 +10,6 @@ class SharedPrefence {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('userId');
   }
+
+  saveUserEmail(String email) {}
 }
