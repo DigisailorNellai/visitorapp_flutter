@@ -180,15 +180,15 @@ Widget _buildUserHeader(Map<String, dynamic> userData) {
     children: [
       CircleAvatar(
         radius: 20,
+        backgroundColor: backgroundColor,
         child: Text(
           firstLetter,
-          style: TextStyle(
+          style: const TextStyle(
               fontFamily: 'Poppins',
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.white),
         ),
-        backgroundColor: backgroundColor,
       ),
       const SizedBox(width: 20),
       Column(

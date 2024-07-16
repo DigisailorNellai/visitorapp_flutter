@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-import 'package:visitor_app_flutter/pages/QR.dart';
-import 'package:visitor_app_flutter/pages/user.dart';
+import 'package:visitor_app_flutter/pages/appoinment_details.dart';
 
 class BookAppointmentScreen extends StatefulWidget {
   @override
@@ -15,17 +14,13 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   String? _selectedStaff;
-  String? _selectedDepartment;
+  String? _appointmentReason;  // Reason for the appointment
+  String? _whatWillYouTake;  // What will you be taking with you
+  bool _isTakingSomeone = false;  // Whether the visitor is taking someone with them
+  int _numberOfPeople = 0;  // Number of people coming with the visitor
+  List<String?> _emails = [];  // List to store email addresses of people coming with the visitor
   List<String> _availableTimes = [];
-  List<String> _staffList = [];
-  List<String> _departmentsList = [
-    'HR',
-    'Engineering',
-    'Marketing',
-    'Finance',
-    'Sales',
-  ];
-  Map<String, String> _staffDepartments = {}; // Map to store staff and their departments
+  List<String> _staffList = [];  // List of staff members
 
   @override
   void initState() {
@@ -33,11 +28,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     _fetchStaffList();
   }
 
-  // Fetch staff names based on selected department
+  // Fetch staff names (Sample data, replace with actual Firestore data fetching)
   void _fetchStaffList() async {
-    if (_selectedDepartment == null) return; // Avoid fetching staff if department is not selected
-
-    // Sample staff data (In a real app, this data will be fetched from Firestore)
+    // Sample staff data
     final staffData = {
       'John Doe': 'HR',
       'Jane Smith': 'Engineering',
@@ -47,21 +40,15 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     };
 
     List<String> staffNames = [];
-    Map<String, String> staffDepartments = {};
-
-    staffData.forEach((name, department) {
-      if (department == _selectedDepartment) {
-        staffDepartments[name] = department;
-        staffNames.add(name);
-      }
+    staffData.forEach((name, _) {
+      staffNames.add(name);
     });
 
     setState(() {
-      _staffDepartments = staffDepartments;
       _staffList = staffNames;
-      _selectedStaff = null;  // Reset selected staff when department changes
-      _selectedTime = null;   // Reset selected time when department changes
-      _availableTimes.clear(); // Clear available times when department changes
+      _selectedStaff = null;  // Reset selected staff when fetching new staff
+      _selectedTime = null;   // Reset selected time when fetching new staff
+      _availableTimes.clear(); // Clear available times when fetching new staff
     });
   }
 
@@ -69,7 +56,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   void _fetchAvailableTimes() async {
     if (_selectedDate == null || _selectedStaff == null) return; // Avoid fetching available times if date or staff is not selected
 
-    // Sample available times data (In a real app, this data will be fetched from Firestore)
+    // Sample available times data
     List<String> bookedTimes = []; // Sample empty booked times list
     List<String> allTimes = [
       '09:00 AM',
@@ -114,14 +101,17 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     if (_formKey.currentState!.validate() &&
         _selectedDate != null &&
         _selectedTime != null &&
-        _selectedStaff != null &&
-        _selectedDepartment != null) {
-      await FirebaseFirestore.instance.collection('appointments').add({
+        _selectedStaff != null) {
+      DocumentReference appointmentRef = await FirebaseFirestore.instance.collection('appointments').add({
         'visitorId': FirebaseAuth.instance.currentUser?.uid,
         'date': DateFormat('yyyy-MM-dd').format(_selectedDate!),
         'time': _selectedTime!.format(context),
         'staffId': _selectedStaff,
-        'staffDepartment': _selectedDepartment,
+        'reason': _appointmentReason,  // Add the reason for the appointment
+        'whatWillYouTake': _whatWillYouTake,  // Add what the visitor will be taking
+        'isTakingSomeone': _isTakingSomeone,  // Whether the visitor is taking someone with them
+        'numberOfPeople': _numberOfPeople,  // Number of people coming with the visitor
+        'emails': _emails,  // Email addresses of people coming with the visitor
         'status': 'pending',
       });
 
@@ -135,28 +125,10 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
             appointmentDate: _selectedDate!,
             appointmentTime: _selectedTime!,
             staffName: _selectedStaff!,
-            staffDepartment: _selectedDepartment!,
-            onAccept: (bool accepted) {
-              if (accepted) {
-                // Navigate to QR Code screen
-                String qrData =
-                    'Visitor ID: ${FirebaseAuth.instance.currentUser?.uid}, Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate!)}, Time: ${_selectedTime!.format(context)}, Staff ID: $_selectedStaff, Department: $_selectedDepartment';
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => QrCodeScreen(qrData: qrData),
-                  ),
-                );
-              } else {
-                // Handle decline logic
-                // Update appointment status to 'declined' in Firestore
-                // Show decline message
-              }
-            },
-            onDecline: (bool declined) {
-              // Update appointment status to 'declined' in Firestore
-              // Show decline message
-            },
+            appointmentId: appointmentRef.id, 
+            onAccept: (bool ) {  }, 
+            onDecline: (bool ) {  }, // Pass the appointmentId
+              // Pass the appointmentId
           ),
         ),
       );
@@ -188,117 +160,243 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Book Appointment')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Pick a Date for Appointment',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    onPressed: _selectDate,
-                    icon: const Icon(Icons.calendar_today),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Select Staff',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Select Staff',
                   ),
-                  SizedBox(width: 10),
-                  Text(
-                    _selectedDate != null
-                        ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-                        : 'Pick a Date',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 12),
+                  value: _selectedStaff,
+                  onChanged: _staffList.isNotEmpty
+                      ? (newValue) {
+                          setState(() {
+                            _selectedStaff = newValue!;
+                            _fetchAvailableTimes();  // Fetch available times for the selected staff
+                          });
+                        }
+                      : null, // Disable staff selection if no staff available
+                  items: _staffList.map((staff) {
+                    return DropdownMenuItem(
+                      child: Text(staff),
+                      value: staff,
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Reason for Appointment',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Enter the reason for the appointment',
+                  ),
+                  maxLines: 3,  // Allow multiple lines for the reason
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a reason for the appointment';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    _appointmentReason = value;  // Update the reason when the text changes
+                  },
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'What will you be taking with you?',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Enter what you will be taking with you',
+                  ),
+                  maxLines: 1,  // Allow multiple lines for the response
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter what you will be taking with you';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    _whatWillYouTake = value;  // Update what the visitor will be taking
+                  },
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Are you taking anyone with you?',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    _buildYesNoButton('Yes', true),
+                    const SizedBox(width: 10),
+                    _buildYesNoButton('No', false),                                                 
+                  ],
+                ),
+                if (_isTakingSomeone) ...[
+                  const SizedBox(height: 20),
+                  const Text(
+                    'How many are coming with you?',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Enter number of people',
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the number of people';
+                      }
+                      return null;
+                    },
+                    onChanged: (value) {
+                      setState(() {
+                        _numberOfPeople = int.tryParse(value) ?? 0;
+                        _emails = List.generate(
+                          _numberOfPeople,
+                          (index) => '',
+                        );  // Initialize list with empty strings
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  ...List.generate(
+                    _numberOfPeople,
+                        (index) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Email ID of Person ${index + 1}',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        TextFormField(
+                          decoration: InputDecoration(
+                            border: const OutlineInputBorder(),
+                            hintText: 'Enter Email ID of Person ${index + 1}',
+                          ),
+                          onChanged: (value) {
+                            if (index < _emails.length) {
+                              _emails[index] = value;  // Update email addresses
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Select Department',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              const SizedBox(height: 10),
-              DropdownButton<String>(
-                hint: const Text('Select Department'),
-                value: _selectedDepartment,
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedDepartment = newValue!;
-                    _fetchStaffList();  // Fetch staff based on the selected department
-                  });
-                },
-                items: _departmentsList.map((department) {
-                  return DropdownMenuItem(
-                    child: Text(department),
-                    value: department,
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Select Staff',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              const SizedBox(height: 10),
-              DropdownButton<String>(
-                hint: Text('Select Staff'),
-                value: _selectedStaff,
-                onChanged: _staffList.isNotEmpty
-                    ? (newValue) {
-                        setState(() {
-                          _selectedStaff = newValue!;
-                          _fetchAvailableTimes();  // Fetch available times for the selected staff
-                        });
-                      }
-                    : null, // Disable staff selection if no staff available
-                items: _staffList.map((staff) {
-                  return DropdownMenuItem(
-                    child: Text(staff),
-                    value: staff,
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Select Time',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              const SizedBox(height: 10),
-              DropdownButton<String>(
-                hint: const Text('Select Time'),
-                value: _selectedTime == null
-                    ? null
-                    : formatTimeOfDay(_selectedTime!),
-                onChanged: _selectedDate != null && _selectedStaff != null
-                    ? _selectTime
-                    : null, // Disable time selection if date or staff is not selected
-                items: _availableTimes.map((time) {
-                  return DropdownMenuItem(
-                    child: Text(time),
-                    value: time,
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                style: const ButtonStyle(
-                    backgroundColor: MaterialStatePropertyAll(
-                  Color.fromARGB(255, 15, 66, 107),
-                )),
-                onPressed: _submitForm,
-                child: const Text(
-                  'Book Appointment',
-                  style: TextStyle(color: Colors.white),
+                const SizedBox(height: 20),
+                const Text(
+                  'Date',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: _selectDate,
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        hintText: _selectedDate == null
+                            ? 'Select Date'
+                            : DateFormat('yyyy-MM-dd').format(_selectedDate!),
+                      ),
+                      validator: (value) {
+                        if (_selectedDate == null) {
+                          return 'Please select a date';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Time',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Select Time',
+                  ),
+                  value: _selectedTime == null
+                      ? null
+                      : formatTimeOfDay(_selectedTime!),
+                  onChanged: _availableTimes.isNotEmpty
+                      ? (newValue) {
+                          _selectTime(newValue);
+                        }
+                      : null, // Disable time selection if no times available
+                  items: _availableTimes.map((time) {
+                    return DropdownMenuItem(
+                      child: Text(time),
+                      value: time,
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _submitForm,
+                  style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white, backgroundColor: Color.fromARGB(255, 38, 49, 95),  // Text color
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),  // Button shape
+                        ),
+                        fixedSize: Size(400, 40),  // Button size
+                      ),
+                  child: const Text('Book Appointment'),
+                ),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildYesNoButton(String text, bool value) {
+    return Expanded(
+      child: Row(
+        children: [
+          Radio<bool>(
+            value: value,
+            groupValue: _isTakingSomeone,
+            onChanged: (bool? newValue) {
+              setState(() {
+                _isTakingSomeone = newValue!;
+                if (!_isTakingSomeone) {
+                  _numberOfPeople = 0;
+                  _emails.clear();  // Clear emails if "No" is selected
+                }
+              });
+            },
+          ),
+          Text(text),
+        ],
       ),
     );
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:visitor_app_flutter/pages/user.dart';
+import 'package:visitor_app_flutter/pages/appoinment_details.dart';
 
 class NavigationBarBottom2 extends StatefulWidget {
   const NavigationBarBottom2({super.key});
@@ -37,13 +37,9 @@ class _NavigationBarBottomState extends State<NavigationBarBottom2> {
                     appointmentDate: DateTime.now(), 
                     appointmentTime: TimeOfDay.now(), 
                     staffName: '', 
-                    staffDepartment: '', 
-                    onAccept: (bool accepted) {
-                          // Handle acceptance
-                        }, 
-                        onDecline: (bool declined) {
-                          // Handle decline
-                        },
+                     appointmentId: '', 
+                     onAccept: (bool ) {  }, 
+                     onDecline: (bool ) {  },
                         ));
                   break;
                 case 3:

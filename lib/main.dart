@@ -60,7 +60,7 @@ import 'package:visitor_app_flutter/pages/staff_home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();  
   await Firebase.initializeApp();
 
   runApp(const MyApp());

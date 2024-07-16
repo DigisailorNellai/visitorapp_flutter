@@ -1,129 +1,240 @@
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import '../controller/authcontroller/logout_controller.dart';
-import 'QR_result.dart';
- 
-class SecurityPage extends StatefulWidget {
-  const SecurityPage({super.key});
+// import 'package:flutter/material.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:qr_code_scanner/qr_code_scanner.dart';
 
+// class SecurityPage extends StatefulWidget {
+//   @override
+//   _SecurityPageState createState() => _SecurityPageState();
+// }
+
+// class _SecurityPageState extends State<SecurityPage> {
+//   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+//   QRViewController? controller;
+
+//   @override
+//   void dispose() {
+//     controller?.dispose();
+//     super.dispose();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: const Text('Scan QR Code')),
+//       body: Column(
+//         children: <Widget>[
+//           Expanded(
+//             flex: 5,
+//             child: QRView(
+//               key: qrKey,
+//               onQRViewCreated: _onQRViewCreated,
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   void _onQRViewCreated(QRViewController controller) {
+//     this.controller = controller;
+//     controller.scannedDataStream.listen((scanData) {
+//       if (scanData.code != null) {
+//         controller.pauseCamera();
+//         _fetchAppointmentDetails(scanData.code!); // Ensure non-null value with '!'
+//       } else {
+//         _showError('Invalid QR code.');
+//       }
+//     });
+//   }
+
+//   void _fetchAppointmentDetails(String qrContent) async {
+//     try {
+//       final appointmentId = qrContent.split('\n')[0].split(': ')[1]; // Assuming the QR content starts with appointment ID
+//       final snapshot = await FirebaseFirestore.instance.collection('appointments').doc(appointmentId).get();
+
+//       if (snapshot.exists) {
+//         final appointmentData = snapshot.data() as Map<String, dynamic>;
+//         _showAppointmentDetails(appointmentData);
+//       } else {
+//         _showError('Appointment not found.');
+//       }
+//     } catch (e) {
+//       _showError('Invalid QR code.');
+//     }
+//   }
+
+//   void _showAppointmentDetails(Map<String, dynamic> appointmentData) {
+//     showDialog(
+//       context: context,
+//       builder: (context) {
+//         return AlertDialog(
+//           title: const Text('Appointment Details'),
+//           content: Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               Text('Visitor Name: ${appointmentData['visitorName']}'),
+//               Text('Date: ${appointmentData['date']}'),
+//               Text('Time: ${appointmentData['time']}'),
+//               Text('Staff Name: ${appointmentData['staffName']}'),
+//               Text('Reason: ${appointmentData['reason']}'),
+//               Text('What will you be taking: ${appointmentData['whatWillYouTake']}'),
+//               Text('Is Taking Someone: ${appointmentData['isTakingSomeone'] ? 'Yes' : 'No'}'),
+//               if (appointmentData['isTakingSomeone']) Text('Number of People: ${appointmentData['numberOfPeople']}'),
+//               if (appointmentData['isTakingSomeone']) Text('Emails: ${appointmentData['emails'].join(', ')}'),
+//             ],
+//           ),
+//           actions: [
+//             TextButton(
+//               onPressed: () {
+//                 Navigator.of(context).pop();
+//                 controller?.resumeCamera();
+//               },
+//               child: const Text('Close'),
+//             ),
+//           ],
+//         );
+//       },
+//     );
+//   }
+
+//   void _showError(String message) {
+//     showDialog(
+//       context: context,
+//       builder: (context) {
+//         return AlertDialog(
+//           title: const Text('Error'),
+//           content: Text(message),
+//           actions: [
+//             TextButton(
+//               onPressed: () {
+//                 Navigator.of(context).pop();
+//                 controller?.resumeCamera();
+//               },
+//               child: const Text('Close'),
+//             ),
+//           ],
+//         );
+//       },
+//     );
+//   }
+// }
+
+
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
+
+class SecurityPage extends StatefulWidget {
   @override
   _SecurityPageState createState() => _SecurityPageState();
 }
 
 class _SecurityPageState extends State<SecurityPage> {
-  final AuthController authController = Get.put(AuthController());
-  String qrCodeResult = 'Not Yet Scanned';
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  QRViewController? controller;
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: const Icon(Icons.search),
-        title: Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                onChanged: (value) {
-                  setState(() {});
-                },
-                decoration: const InputDecoration(
-                  hintText: 'Search',
-                  border: InputBorder.none,
-                ),
-              ),
+      appBar: AppBar(title: const Text('Scan QR Code')),
+      body: Column(
+        children: <Widget>[
+          Expanded(
+            flex: 5,
+            child: QRView(
+              key: qrKey,
+              onQRViewCreated: _onQRViewCreated,
             ),
-            IconButton(
-              icon: const Icon(Icons.notifications),
-              onPressed: () {},
-            ),
-            PopupMenuButton(
-              icon: const Icon(Icons.account_circle),
-              onSelected: (value) {
-                if (value == 'Option 1') {
-                  Get.toNamed('/UserInformation');
-                } else if (value == 'Option 2') {
-                  // Add your Settings navigation if needed
-                } else if (value == 'Option 3') {
-                  authController.signOutAndNavigateToSignIn();
-                }
-              },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                const PopupMenuItem(
-                  value: 'Option 1',
-                  child: Text(
-                    'My Account',
-                    style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500),
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'Option 2',
-                  child: Text(
-                    'Settings',
-                    style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500),
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'Option 3',
-                  child: Text(
-                    'Logout',
-                    style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Scan Result: $qrCodeResult',
-              style: const TextStyle(fontSize: 20),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                // Navigate to QRViewExample for scanning
-                final result = await Get.to(() => QRViewExample());
-                if (result != null) {
-                  setState(() {
-                    qrCodeResult = result;
-                  });
-                  showDetailsDialog(context, result);
-                }
-              },
-              child: const Text('Scan QR Code'),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  void showDetailsDialog(BuildContext context, String qrData) {
+  void _onQRViewCreated(QRViewController controller) {
+    this.controller = controller;
+    controller.scannedDataStream.listen((scanData) {
+      if (scanData.code != null) {
+        controller.pauseCamera();
+        _fetchAppointmentDetails(scanData.code!); // Ensure non-null value with '!'
+      } else {
+        _showError('Invalid QR code.');
+      }
+    });
+  }
+
+  void _fetchAppointmentDetails(String qrContent) async {
+    try {
+      final appointmentId = qrContent.split('\n')[0].split(': ')[1]; // Assuming the QR content starts with appointment ID
+      final snapshot = await FirebaseFirestore.instance.collection('appointments').doc(appointmentId).get();
+
+      if (snapshot.exists) {
+        final appointmentData = snapshot.data() as Map<String, dynamic>;
+        _showAppointmentDetails(appointmentData);
+      } else {
+        _showError('Appointment not found.');
+      }
+    } catch (e) {
+      _showError('Invalid QR code.');
+    }
+  }
+
+  void _showAppointmentDetails(Map<String, dynamic> appointmentData) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return AlertDialog(
-          title: const Text('QR Code Details'),
-          content: Text(qrData),
-          actions: <Widget>[
+          title: const Text('Appointment Details'),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Visitor Name: ${appointmentData['visitorName']}'),
+              Text('Date: ${appointmentData['date']}'),
+              Text('Time: ${appointmentData['time']}'),
+              Text('Staff Name: ${appointmentData['staffName']}'),
+              Text('Reason: ${appointmentData['reason']}'),
+              Text('What will you be taking: ${appointmentData['whatWillYouTake']}'),
+              Text('Is Taking Someone: ${appointmentData['isTakingSomeone'] ? 'Yes' : 'No'}'),
+              if (appointmentData['isTakingSomeone']) Text('Number of People: ${appointmentData['numberOfPeople']}'),
+              if (appointmentData['isTakingSomeone']) Text('Emails: ${appointmentData['emails'].join(', ')}'),
+            ],
+          ),
+          actions: [
             TextButton(
-              child: const Text('Close'),
               onPressed: () {
                 Navigator.of(context).pop();
+                controller?.resumeCamera();
               },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showError(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                controller?.resumeCamera();
+              },
+              child: const Text('Close'),
             ),
           ],
         );
