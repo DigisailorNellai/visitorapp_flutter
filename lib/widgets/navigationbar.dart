@@ -32,7 +32,7 @@ class _NavigationBarBottomState extends State<NavigationBarBottom> {
                   Get.to(() => Mainpage());
                   break;
                 case 1:
-                  Get.to(() => QrCodeScreen(qrContent: 'Your QR code', ));
+                  Get.to(() => VisitorAppointmentsScreen());
                   break;
                 case 2:
                   // Get.to(() => );

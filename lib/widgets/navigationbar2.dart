@@ -32,15 +32,7 @@ class _NavigationBarBottomState extends State<NavigationBarBottom2> {
                   // Get.to(() => QrCodeScreen(qrData: ''));
                   break;
                 case 2:
-                  Get.to(() => AppointmentDetailsScreen(
-                    visitorName: '', 
-                    appointmentDate: DateTime.now(), 
-                    appointmentTime: TimeOfDay.now(), 
-                    staffName: '', 
-                     appointmentId: '', 
-                     onAccept: (bool ) {  }, 
-                     onDecline: (bool ) {  },
-                        ));
+                  Get.to(() => StaffAppointmentsScreen());
                   break;
                 case 3:
                   break;
